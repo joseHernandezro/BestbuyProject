@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    /* HERE WE DEFINE THE STYLE OF THE MAP INFOWINDOW*/
+     .gm-style-iw.gm-style-iw-c{
+        padding:0px;
+    }
+    /*HERE WE DEFINE THE STYLE OF THE CONTENT INSIDE
+    INFOWINDOWS*/
+    .gm-style-iw-d {
+      overflow: hidden !important;
+      border: 2px solid powderblue;
+      width: auto;
+      height: auto;
+      color: rgb(0, 0, 0);
+      font-family: verdana;
+      font-size: 20;
+      background: linear-gradient(#deded7, #c9c86b);
+      justify-content: center;
+      align-items: center;
+    }
+    #firstHeading {
+      display: flex;
+      width: 92%;
+      height: 20%;
+      padding: 4%;
+      justify-content: center;
+      align-items: center;
+      
+    }
+
+    #contentDetails {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    button {
+      background-color: #1b6be4;
+      color: white;
+      padding: 0px 40px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 15px;
+    }
+
+    .buttonContainer {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="googleMap" style="width:100%;height:98vh;"></div>
+  <script>
+    var activeInfoWindow;
+    function myMap() {
+      var mapProp = {
+        center: new google.maps.LatLng(32.771759, -117.132016),
+        zoom: 12,
+      };
+      this.map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+    }
+    function locatePins(locations) {
+      console.log(locations);
+      locations = JSON.parse(locations);
+      let index = 1;
+      let mapPins = new Array;
+      let contentString;
+      for (var location of locations) {
+        if (location === locations[0]) {
+          this.map = new google.maps.Map(document.getElementById("googleMap"), {
+            zoom: 10,
+            center: { lat: Number(location.lat), lng: Number(location.lng) },
+          });
+        }
+        contentString = fillHTMLTemplate(location, index);
+        mapPins.push(createMarker(location.lat, location.lng, index, contentString));
+        index += 1;
+      }
+
+    }
+    function createMarker(lattitude, longitude, index, contentString) {
+      const infoWindow = new google.maps.InfoWindow({
+        content: "",
+        disableAutoPan: true,
+      });
+      var marker = new google.maps.Marker({
+        position: { lat: lattitude, lng: longitude },
+        map: this.map,
+        zIndex: index,
+      });
+      google.maps.event.addListener(marker, 'click', function () {
+        if (activeInfoWindow) { activeInfoWindow.close(); }
+        closeBarOnKonyView();
+        this.map.panTo(marker.getPosition());
+        infoWindow.setContent(contentString);
+        infoWindow.open({ anchor: marker, map: this.map, shouldFocus: true });
+        activeInfoWindow = infoWindow;
+      });
+      infoWindow.addListener('closeclick', function () {
+        closeBarOnKonyView();
+      });
+      return marker;
+    }
+    function fillHTMLTemplate(location, index) {
+      var contentString =
+        '<div id="LocationContent">' +
+        '<div id="firstHeading" class="firstHeading">' +
+        '<img src="compass.png" style="float:left"' +
+        'width="50" height="50"><b>' + location.address + '</b>' +
+        '</div>' +
+        '<div id = contentDetails>' +
+        '<p><b>Name: </b>' + location.name + '</p>' +
+        '<p><b>City: </b>' + location.city + '</p>' +
+        '</div>' +
+        '<div class="buttonContainer">' +
+        '<button type="button" onclick="moreButtonClicked(' + index + ')">More...</button>' +
+        '</div>' +
+        '</div>';
+      return contentString;
+    }
+    function closeBarOnKonyView() {
+      //alert("Function closeBarOnKonyView");
+      kony.evaluateJavaScriptInNativeContext('closeBarFromKonyView()');
+    }
+    function moreButtonClicked(index) {
+      index = parseInt(index, 10);
+      index -= 1;
+      console.log(index);
+      kony.evaluateJavaScriptInNativeContext('retieveIndexLocationInKonyContext(' + index + ')')
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?sensor=false&callback=myMap"></script>
+</body>
+
+</html>
